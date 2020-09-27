@@ -1,17 +1,23 @@
+// Colby Alexander Hoke
+// UNC Data Analytics Bootcamp
+// September, 2020
+
+// Set width and height of SVG plot
 var svgWidth = 960;
 var svgHeight = 500;
 
+// Set margins
 var margin = {
   top: 20,
-  right: 40,
   bottom: 60,
-  left: 100
+  left: 100,
+  right: 40
 };
 
 var width = svgWidth - margin.left - margin.right;
 var height = svgHeight - margin.top - margin.bottom;
 
-// Create an SVG wrapper, append an SVG group that will hold our chart, and shift the latter by left and top margins.
+// Make SVG scatter plot
 var svg = d3.select("#scatter")
   .append("svg")
   .attr("width", svgWidth)
@@ -20,33 +26,31 @@ var svg = d3.select("#scatter")
 var chartGroup = svg.append("g")
   .attr("transform", `translate(${margin.left}, ${margin.top})`);
 
-// Import Data
-d3.csv("assets/data/data.csv").then(function(demographicsData) {
-console.log(demographicsData);
-    // Step 1: Parse Data/Cast as numbers
-    // ==============================
-    demographicsData.forEach(function(data) {
+// Import the CSV file
+d3.csv("assets/data/data.csv").then(function(demoData) {
+console.log(demoData);
+    
+    // Pull in data
+    demoData.forEach(function(data) {
         data.healthcare = +data.healthcare;
         data.poverty = +data.poverty;
       });
   
-      // Step 2: Create scale functions
-      // ==============================
+      // xScale
       var xLinearScale = d3.scaleLinear()
-        .domain([8, d3.max(demographicsData, d => d.poverty)])
+        .domain([8, d3.max(demoData, d => d.poverty)])
         .range([0, width]);
-  
+      
+      // yScale
       var yLinearScale = d3.scaleLinear()
-        .domain([0, d3.max(demographicsData, d => d.healthcare)])
+        .domain([0, d3.max(demoData, d => d.healthcare)])
         .range([height, 0]);
   
-      // Step 3: Create axis functions
-      // ==============================
+      // Build axis
       var bottomAxis = d3.axisBottom(xLinearScale);
       var leftAxis = d3.axisLeft(yLinearScale);
   
-      // Step 4: Append Axes to the chart
-      // ==============================
+      // 
       chartGroup.append("g")
         .attr("transform", `translate(0, ${height})`)
         .call(bottomAxis);
@@ -54,21 +58,20 @@ console.log(demographicsData);
       chartGroup.append("g")
         .call(leftAxis);
   
-      // Step 5: Create Circles
-      // ==============================
+      // Make the circles for each state
       var circlesGroup = chartGroup.selectAll("circle")
-      .data(demographicsData)
+      .data(demoData)
       .enter()
       .append("circle")
-      .attr("cx", d => xLinearScale(d.poverty))
-      .attr("cy", d => yLinearScale(d.healthcare))
-      .attr("r", "15")
-      .attr("fill", "green")
+      .attr("cx", d => xLinearScale(d.poverty)) // Postion x
+      .attr("cy", d => yLinearScale(d.healthcare)) // Position y
+      .attr("r", "14") // Size
+      .attr("fill", "blue") // Color
       .attr("opacity", ".5");
   
-
+      // Add identifying text to circles
       var circletextGroup = chartGroup.selectAll()
-        .data(demographicsData)
+        .data(demoData)
         .enter()
         .append("text")
         .attr("x", d => xLinearScale(d.poverty))
@@ -78,7 +81,7 @@ console.log(demographicsData);
         .style('fill', 'black')
         .text(d => (d.abbr));
 
-      //Create axes labels
+      // Create y axes label
       chartGroup.append("text")
         .attr("transform", "rotate(-90)")
         .attr("y", 0 - margin.left + 40)
@@ -87,10 +90,12 @@ console.log(demographicsData);
         .attr("class", "axisText")
         .text("Lacks Healthcare(%)");
   
+      // Create x axes label
       chartGroup.append("text")
         .attr("transform", `translate(${width / 2.5}, ${height + margin.top + 30})`)
         .attr("class", "axisText")
         .text("In Poverty (%)");
+        
 }).catch(function(error) {
   console.log(error);
   });
